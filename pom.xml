@@ -90,8 +90,6 @@
                 <groupId>com.jobfirm</groupId>
                 <artifactId>job-firm-common</artifactId>
                 <version>${com.jobfirm.version}</version>
-                <scope>import</scope>
-                <optional>true</optional>
             </dependency>
 
             <!-- JobFirm平台 InfraStructure模块 -->
@@ -99,8 +97,6 @@
                 <groupId>com.jobfirm</groupId>
                 <artifactId>job-firm-infrastructure</artifactId>
                 <version>${com.jobfirm.version}</version>
-                <scope>import</scope>
-                <optional>true</optional>
             </dependency>
 
             <!-- JobFirm平台 API模块 -->
@@ -108,8 +104,6 @@
                 <groupId>com.jobfirm</groupId>
                 <artifactId>job-firm-api</artifactId>
                 <version>${com.jobfirm.version}</version>
-                <scope>import</scope>
-                <optional>true</optional>
             </dependency>
 
             <!-- Spring Boot BOM -->

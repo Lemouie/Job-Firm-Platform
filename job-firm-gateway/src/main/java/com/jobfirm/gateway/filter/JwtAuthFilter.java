@@ -22,20 +22,20 @@ public class JwtAuthFilter implements GlobalFilter, org.springframework.core.Ord
     private final WebClient.Builder webClientBuilder;
     private final JobFirmProperties jobFirmProperties;
 
+    // Auth service URL for standalone mode (no Nacos)
+    private static final String AUTH_SERVICE_URL = "http://localhost:8081";
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        System.out.println("test -5");
         String path = exchange.getRequest().getURI().getPath();
 
         // 放行 auth-service
         if (path.startsWith("/api/auth")) {
-            System.out.println("test -4");
             return chain.filter(exchange);
         }
 
         // 放行登录、注册
         if (path.startsWith("/api/users/login") || path.startsWith("/api/users/register")) {
-            System.out.println("test -3");
             return chain.filter(exchange);
         }
 
@@ -47,12 +47,11 @@ public class JwtAuthFilter implements GlobalFilter, org.springframework.core.Ord
         }
 
         String token = authHeader.substring(7);
-        System.out.println("test -2");
         // 调用 auth-service 校验 Token
         return webClientBuilder.build()
                 .post()
                 // 不会走 Gateway Route，直接访问 auth-service，不得添加/api前缀
-                .uri("lb://auth-service/auth/validate")
+                .uri(AUTH_SERVICE_URL + "/auth/validate")
                 .header("Authorization", "Bearer " + token)
                 // 不会走 Gateway Route，直接访问 auth-service，要添加内部调用密钥
                 .header("X-Internal-Secret", jobFirmProperties.getInternalSecret())

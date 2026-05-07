@@ -1,0 +1,88 @@
+# jobfirm平台 内部调用密钥
+jobfirm:
+  internal-secret: "jobfirm-2026"
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-stacktrace: always
+
+spring:
+  application:
+    name: gateway
+
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+
+    gateway:
+      default-filters:
+        - AddRequestHeader=X-Internal-Secret, jobfirm-2026
+      routes:
+        # auth Service
+        - id: auth
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+
+        # User Service
+        - id: user-service
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+
+        # Firm Service
+        - id: firm-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/firms/**
+          filters:
+            - StripPrefix=1
+
+        # Job Service
+        - id: job-service
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/jobs/**
+          filters:
+            - StripPrefix=1
+
+        # Order Service
+        - id: order-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/orders/**, /api/order-progress/**
+          filters:
+            - StripPrefix=1
+
+        # Payment Service
+        - id: payment-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/payment/**
+          filters:
+            - StripPrefix=1
+
+    sentinel:
+      transport:
+        dashboard: localhost:8718
+      eager: true
+      filter:
+        enabled: false
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    com.jobfirm: DEBUG

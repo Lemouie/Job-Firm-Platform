@@ -4,8 +4,10 @@
 -- ============================================
 
 -- ========================
--- 1. 用户服务库
+-- Nacos 配置中心数据库
 -- ========================
+CREATE DATABASE IF NOT EXISTS nacos_config
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 CREATE DATABASE IF NOT EXISTS job_firm_user
   CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE job_firm_user;
