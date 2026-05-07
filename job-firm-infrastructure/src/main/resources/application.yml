@@ -1,0 +1,80 @@
+spring:
+  # 服务基本信息
+  application:
+    # 微服务名称，用于注册中心识别
+    name: infrastructure
+
+  cloud:
+    nacos:
+      # 服务发现（Service Discovery）的配置
+      discovery:
+        # 指定 Nacos 注册中心的地址
+        server-addr: localhost:8848
+      config:
+        # Nacos 配置中心地址
+        server-addr: localhost:8848
+        # 配置隔离和分组
+        namespace: job-firm
+        group: DEFAULT_GROUP
+
+  # JSON 序列化配置
+  jackson:
+    # 统一 JSON 时间格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 时区设置为中国标准时间
+    time-zone: Asia/Shanghai
+
+  # Redis 缓存配置
+  data:
+    redis:
+      # Redis 服务地址和端口
+      host: localhost
+      port: 6379
+      # 选择 Redis 的第几个数据库（默认 0）
+      database: 0
+
+# MyBatis-Plus ORM 框架配置
+mybatis-plus:
+  #  # Mapper XML 文件路径
+  #  # 作用：告诉 MyBatis-Plus 去哪里加载 Mapper 映射文件（即 SQL 映射 XML 文件）
+  #  # 示例：在 resources/mapper/ 目录下放了 FirmMapper.xml
+  #  mapper-locations: classpath:/mapper/*.xml
+  #  # 实体类包路径
+  #  # 作用：指定 实体类所在的包路径，让 MyBatis-Plus 可以自动为这些类创建别名。
+  #  # 示例：如果你有一个 com.jobfirm.firm.entity.Firm 类，在 XML 中就可以直接写 Firm
+  #  type-aliases-package: com.jobfirm.firm.entity
+  configuration:
+    # 开启下划线转驼峰
+    map-underscore-to-camel-case: true
+    # 打印 SQL 日志到控制台
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    # 数据库层面的配置，比如主键策略、表前缀、逻辑删除字段等
+    db-config:
+      # auto → 数据库自增（MySQL 常用）
+      # none → 不设置主键策略，需要手动赋值
+      # input → 手动输入主键值
+      # assign_id（64 位长整型） → MyBatis-Plus 内置的雪花算法生成全局唯一 ID
+      # uuid（字符串形式的唯一标识） → 使用 UUID 作为主键
+      id-type: assign_id
+
+# Actuator 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露所有 Actuator 监控端点，方便健康检查和监控
+        include: "*"
+
+# 日志级别配置
+logging:
+  # 日志级别，业务包设为 debug，Spring 框架设为 info
+  # TRACE → 最详细，几乎所有细节。
+  # DEBUG → 调试信息，开发时常用。
+  # INFO → 关键运行信息，生产环境常用。
+  # WARN → 警告，提示潜在问题。
+  # ERROR → 错误，程序运行失败。
+  # FATAL（部分框架有）→ 致命错误，系统崩溃。
+  level:
+    com.jobfirm.infrastructure: debug
+    org.springframework: info

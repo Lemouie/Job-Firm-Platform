@@ -1,0 +1,556 @@
+# ============================================
+# Job-Firm Platform - Full Docker Deployment
+# ============================================
+# Includes: MySQL, Redis, Nacos, RocketMQ, and
+# all microservices built from source.
+
+version: "3.9"
+
+networks:
+  job-firm-net:
+    driver: bridge
+    name: job-firm-net
+
+volumes:
+  mysql-data:
+    driver: local
+    name: job-firm-mysql-data
+  redis-data:
+    driver: local
+    name: job-firm-redis-data
+  nacos-data:
+    driver: local
+    name: job-firm-nacos-data
+  nacos-logs:
+    driver: local
+    name: job-firm-nacos-logs
+  rocketmq-logs:
+    driver: local
+    name: job-firm-rocketmq-logs
+  rocketmq-store:
+    driver: local
+    name: job-firm-rocketmq-store
+
+services:
+
+  # ========================
+  # MySQL 8.0 数据库
+  # ========================
+  mysql:
+    image: mysql:8.0
+    container_name: job-firm-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: job_firm_user
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --max_connections=200
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./sql/init-all-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # Redis 7.2 缓存
+  # ========================
+  redis:
+    image: redis:7.2
+    container_name: job-firm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", ""]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - job-firm-net
+
+  # ========================
+  # Nacos 2.3.2 注册/配置中心
+  # ========================
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: job-firm-nacos
+    restart: unless-stopped
+    environment:
+      MODE: standalone
+      SPRING_DATASOURCE_PLATFORM: mysql
+      MYSQL_SERVICE_HOST: mysql
+      MYSQL_SERVICE_DB_NAME: nacos_config
+      MYSQL_SERVICE_PORT: 3306
+      MYSQL_SERVICE_USER: root
+      MYSQL_SERVICE_PASSWORD: root123
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+      JVM_XMN: 128m
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    volumes:
+      - nacos-data:/home/nacos/data
+      - nacos-logs:/home/nacos/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # RocketMQ 5.1.4 NameServer
+  # ========================
+  rocketmq-namesrv:
+    image: apache/rocketmq:5.1.4
+    container_name: job-firm-rocketmq-namesrv
+    restart: unless-stopped
+    environment:
+      JAVA_OPT_EXT: "-server -Xms256m -Xmx256m"
+    entrypoint: ["sh", "mqnamesrv"]
+    ports:
+      - "9876:9876"
+    volumes:
+      - rocketmq-logs:/home/rocketmq/logs
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9876/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # RocketMQ 5.1.4 Broker
+  # ========================
+  rocketmq-broker:
+    image: apache/rocketmq:5.1.4
+    container_name: job-firm-rocketmq-broker
+    restart: unless-stopped
+    depends_on:
+      rocketmq-namesrv:
+        condition: service_started
+    environment:
+      NAMESRV_ADDR: "rocketmq-namesrv:9876"
+      JAVA_OPT_EXT: "-server -Xms512m -Xmx512m -Xmn256m"
+    entrypoint:
+      - "sh"
+      - "-c"
+      - |
+        cat > /home/rocketmq/conf/broker.conf << 'EOF'
+        brokerClusterName = JobFirmCluster
+        brokerName = broker-a
+        brokerId = 0
+        deleteWhen = 04
+        fileReservedTime = 48
+        brokerRole = ASYNC_MASTER
+        flushDiskType = ASYNC_FLUSH
+        autoCreateTopicEnable = true
+        autoCreateSubscriptionGroup = true
+        listenPort = 10911
+        namesrvAddr = rocketmq-namesrv:9876
+        brokerIP1 = ${BROKER_IP1:-rocketmq-broker}
+        defaultTopicQueueNums = 8
+        EOF
+        mqbroker -c /home/rocketmq/conf/broker.conf
+    ports:
+      - "10911:10911"
+      - "10909:10909"
+    volumes:
+      - rocketmq-logs:/home/rocketmq/logs
+      - rocketmq-store:/home/rocketmq/store
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-gateway (API网关)
+  # ========================
+  job-firm-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-gateway
+    container_name: job-firm-gateway
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-auth (认证服务)
+  # ========================
+  job-firm-auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-auth
+    container_name: job-firm-auth
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-user-service (用户服务)
+  # ========================
+  job-firm-user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-user-service
+    container_name: job-firm-user-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_user?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-firm-service (事务所服务)
+  # ========================
+  job-firm-firm-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-firm-service
+    container_name: job-firm-firm-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_firm?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-job-service (差事服务)
+  # ========================
+  job-firm-job-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-job-service
+    container_name: job-firm-job-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_job?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-order-service (订单服务)
+  # ========================
+  job-firm-order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-order-service
+    container_name: job-firm-order-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_order?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-payment-service (支付服务)
+  # ========================
+  job-firm-payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-payment-service
+    container_name: job-firm-payment-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_payment?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-recommend-search-service (推荐搜索服务)
+  # ========================
+  job-firm-recommend-search-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-recommend-search-service
+    container_name: job-firm-recommend-search-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_recommend?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8087/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-admin-service (后台管理服务)
+  # ========================
+  job-firm-admin-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-admin-service
+    container_name: job-firm-admin-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_admin?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8088/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net
+
+  # ========================
+  # 微服务: job-firm-archive-service (归档服务)
+  # ========================
+  job-firm-archive-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: job-firm-archive-service
+    container_name: job-firm-archive-service
+    restart: unless-stopped
+    depends_on:
+      nacos:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/job_firm_archive?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root123
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      TZ: Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8089/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    networks:
+      - job-firm-net

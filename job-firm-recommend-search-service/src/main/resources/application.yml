@@ -1,0 +1,53 @@
+# jobfirm平台 内部调用密钥
+jobfirm:
+  internal-secret: "jobfirm-2026"
+
+# 服务基本信息
+server:
+  port: 8087
+  error:
+    include-message: always
+    include-stacktrace: always
+
+spring:
+  application:
+    name: recommend-search-service
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        namespace: job-firm
+        group: DEFAULT_GROUP
+
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+  httpclient:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    com.jobfirm.recommend: debug
+    org.springframework: info

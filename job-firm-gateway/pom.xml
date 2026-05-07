@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承 Job Firm Platform 父工程 -->
+    <parent>
+        <groupId>com.jobfirm</groupId>
+        <artifactId>job-firm-platform</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>job-firm-gateway</artifactId>
+    <packaging>jar</packaging>
+
+    <!--    <scope> 的作用：-->
+    <!--    用来控制依赖在不同阶段的可见性和使用范围。它决定了依赖在编译、测试、运行、打包时是否可用。-->
+    <!--    常见 scope 值：-->
+    <!--    - compile（默认值）-->
+    <!--    在编译、测试、运行、打包时都可用。-->
+    <!--    适合大多数业务依赖，比如你这里的 job-firm-infrastructure。 如果不写 <scope>，默认就是 compile。-->
+    <!--    - provided-->
+    <!--    编译和测试时可用，但运行时由容器或 JDK 提供，不会打包进最终产物。-->
+    <!--    典型例子：servlet-api（由 Tomcat 提供）。-->
+    <!--    - runtime-->
+    <!--    编译时不需要，但运行时需要。-->
+    <!--    典型例子：JDBC 驱动。-->
+    <!--    - test-->
+    <!--    仅在测试编译和运行时可用，不会进入生产包。-->
+    <!--    典型例子：JUnit。-->
+    <!--    - system-->
+    <!--    类似 provided，但需要手动指定本地路径。 不推荐使用。-->
+    <!--    - import-->
+    <!--    用于依赖管理（dependencyManagement），导入 BOM（Bill of Materials）-->
+
+    <!--    <optional> 的作用：-->
+    <!--    表示这个依赖是 可选依赖。 当其他模块依赖当前模块时，不会自动传递这个依赖。-->
+    <!--    使用场景：-->
+    <!--    - 工具类依赖：比如 Lombok，通常标记为 optional，因为它只在编译时有用，不需要传递到下游模块。-->
+    <!--    - 非强制依赖：某些功能模块可能依赖外部库，但不是所有使用者都需要，就可以标记为 optional。-->
+    <!--    - 避免依赖污染：防止公共模块把一些不必要的依赖传递给所有业务模块。-->
+    <dependencies>
+
+        <!-- JobFirm平台 Common模块 -->
+        <dependency>
+            <groupId>com.jobfirm</groupId>
+            <artifactId>job-firm-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-web</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- ====================================================================== -->
+
+        <!-- Spring Boot WebFlux（用于 WebClient） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Configuration Processor （用于 @ConfigurationProperties） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+
+        <!-- Spring Could Alibaba Nacos Discovery -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud LoadBalanbcer-->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud Gateway（WebFlux + Netty） -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-gateway</artifactId>
+        </dependency>
+
+        <!-- ====================================================================== -->
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+</project>

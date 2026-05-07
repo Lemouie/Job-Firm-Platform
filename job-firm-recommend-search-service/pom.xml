@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 继承 Job Firm Platform 父工程 -->
+    <parent>
+        <groupId>com.jobfirm</groupId>
+        <artifactId>job-firm-platform</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>job-firm-recommend-search-service</artifactId>
+    <packaging>jar</packaging>
+
+    <dependencies>
+
+        <!-- JobFirm平台 Common模块 -->
+        <dependency>
+            <groupId>com.jobfirm</groupId>
+            <artifactId>job-firm-common</artifactId>
+        </dependency>
+
+        <!-- JobFirm平台 InfraStructure模块 -->
+        <dependency>
+            <groupId>com.jobfirm</groupId>
+            <artifactId>job-firm-infrastructure</artifactId>
+        </dependency>
+
+        <!-- JobFirm平台 API模块 -->
+        <dependency>
+            <groupId>com.jobfirm</groupId>
+            <artifactId>job-firm-api</artifactId>
+        </dependency>
+
+        <!-- ====================================================================== -->
+
+        <!-- Spring Boot Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Configuration Processor -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud Alibaba Nacos Discovery -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud LoadBalancer -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+        </dependency>
+
+        <!-- Spring Cloud OpenFeign -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Data Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+</project>

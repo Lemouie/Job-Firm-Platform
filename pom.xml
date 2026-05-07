@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Job Firm Platform 父工程基础信息 -->
+    <!-- 公司名称-->
+    <groupId>com.jobfirm</groupId>
+    <!-- 工具名称-->
+    <artifactId>job-firm-platform</artifactId>
+    <version>1.0.0</version>
+    <!-- 打包方式-->
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>job-firm-common</module>
+        <module>job-firm-infrastructure</module>
+        <module>job-firm-api</module>
+
+        <module>job-firm-gateway</module>
+        <module>job-firm-auth</module>
+
+        <module>job-firm-user-service</module>
+        <module>job-firm-firm-service</module>
+
+        <module>job-firm-payment-service</module>
+        <module>job-firm-job-service</module>
+        <module>job-firm-order-service</module>
+
+        <module>job-firm-admin-service</module>
+        <module>job-firm-recommend-search-service</module>
+        <module>job-firm-archive-service</module>
+    </modules>
+
+    <!-- Job Firm Platform 系统属性配置 -->
+    <properties>
+        <!-- Job Firm Platform-->
+        <com.jobfirm.version>1.0.0</com.jobfirm.version>
+
+        <!-- Java -->
+        <java.version>17</java.version>
+
+        <!-- Spring Boot -->
+        <spring.boot.version>3.2.3</spring.boot.version>
+
+        <!-- Spring Cloud 2023.0.1 (Leyton) -->
+        <spring.cloud.version>2023.0.1</spring.cloud.version>
+
+        <!-- Spring Cloud Alibaba（Nacos + Sentinel + RocketMQ） -->
+        <spring.cloud.alibaba.version>2023.0.1.0</spring.cloud.alibaba.version>
+
+        <!-- MyBatis Plus -->
+        <mybatis.plus.version>3.5.5</mybatis.plus.version>
+
+        <!-- RocketMQ -->
+        <rocketmq.version>5.1.4</rocketmq.version>
+
+        <!-- Jackson -->
+        <jackson.version>2.17.0</jackson.version>
+
+        <!-- JUnit -->
+        <junit.version>5.10.2</junit.version>
+        <mockito.version>5.11.0</mockito.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
+
+        <!-- 编码格式 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+<!--    <type> 的作用-->
+<!--    告诉 Maven 这个依赖的产物是什么类型。-->
+<!--    常见类型：-->
+<!--    - jar → 默认值，表示依赖是一个 Java 包（编译和运行时使用）。-->
+<!--    - pom → 表示依赖是一个 POM 文件，通常用于 继承或导入依赖管理（dependencyManagement）。-->
+<!--    - war → Web 应用打包。-->
+<!--    - ear → 企业应用打包。-->
+<!--    - zip/tar.gz → 压缩包-->
+    <!-- Job Firm Platform 依赖管理 -->
+    <dependencyManagement>
+        <dependencies>
+
+            <!-- JobFirm平台 Common模块 -->
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-common</artifactId>
+                <version>${com.jobfirm.version}</version>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- JobFirm平台 InfraStructure模块 -->
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-infrastructure</artifactId>
+                <version>${com.jobfirm.version}</version>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- JobFirm平台 API模块 -->
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-api</artifactId>
+                <version>${com.jobfirm.version}</version>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- Spring Boot BOM -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- Spring Cloud BOM -->
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring.cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- Spring Cloud Alibaba BOM（Nacos） -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- MyBatis Plus Spring Boot3 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis.plus.version}</version>
+                <optional>true</optional>
+            </dependency>
+
+            <!-- RocketMQ Spring Boot Starter -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
+            </dependency>
+
+            <!-- Sentinel Spring Cloud Starter -->
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
+                <version>${spring.cloud.alibaba.version}</version>
+            </dependency>
+
+            <!-- Spring Security Crypto (BCrypt) -->
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-crypto</artifactId>
+            </dependency>
+
+            <!-- Spring Boot Starter Test -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring.boot.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- JUnit 5 -->
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- Mockito -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <!-- TestContainers -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Job Firm Platform 所有子模块共享的插件 -->
+    <build>
+        <pluginManagement>
+            <plugins>
+
+                <!-- Maven Compiler Plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <compilerArgs>
+                            <arg>-parameters</arg>
+                        </compilerArgs>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                    </configuration>
+                </plugin>
+
+                <!-- Spring Boot Plugin -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring.boot.version}</version>
+                </plugin>
+
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

@@ -1,0 +1,32 @@
+# Maven & Build
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.gz
+*.zip
+*.tar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+.springBeans
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+*.local.*
+
+# Generated
+gen/
+out/

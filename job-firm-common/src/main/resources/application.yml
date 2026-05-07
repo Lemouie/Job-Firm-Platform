@@ -1,0 +1,59 @@
+# jobfirm平台 内部调用密钥
+jobfirm:
+  # 字符串在有':'或空格时需要用双引号，@ConfigurationProperties会自动去除双引号传递其中的值
+  internal-secret: "jobfirm-2026"
+
+# JWT密钥 和 超时时间
+jwt:
+  # 字符串在有':'或空格时需要用双引号，@ConfigurationProperties会自动去除双引号传递其中的值
+  secret: "jobfirmplatformsecretkeyjobfirmplatformsecretkey"
+  # 单位：秒，24小时
+  expire: 86400
+  token-cache-prefix: "auth:token:"
+
+spring:
+  # 服务基本信息
+  application:
+    # 微服务名称，用于注册中心识别
+    name: common
+
+  cloud:
+    nacos:
+      # 服务发现（Service Discovery）的配置
+      discovery:
+        # 指定 Nacos 注册中心的地址
+        server-addr: localhost:8848
+      config:
+        # Nacos 配置中心地址
+        server-addr: localhost:8848
+        # 配置隔离和分组
+        namespace: job-firm
+        group: DEFAULT_GROUP
+
+  # JSON 序列化配置
+  jackson:
+    # 统一 JSON 时间格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 时区设置为中国标准时间
+    time-zone: Asia/Shanghai
+
+# Actuator 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露所有 Actuator 监控端点，方便健康检查和监控
+        include: "*"
+
+# 日志级别配置
+logging:
+  # 日志级别，业务包设为 debug，Spring 框架设为 info
+  # TRACE → 最详细，几乎所有细节。
+  # DEBUG → 调试信息，开发时常用。
+  # INFO → 关键运行信息，生产环境常用。
+  # WARN → 警告，提示潜在问题。
+  # ERROR → 错误，程序运行失败。
+  # FATAL（部分框架有）→ 致命错误，系统崩溃。
+  level:
+    com.jobfirm.common: debug
+    org.springframework: info

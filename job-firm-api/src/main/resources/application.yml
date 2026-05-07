@@ -1,0 +1,58 @@
+spring:
+  # 服务基本信息
+  application:
+    # 微服务名称，用于注册中心识别
+    name: api
+
+  cloud:
+    nacos:
+      # 服务发现（Service Discovery）的配置
+      discovery:
+        # 指定 Nacos 注册中心的地址
+        server-addr: localhost:8848
+      config:
+        # Nacos 配置中心地址
+        server-addr: localhost:8848
+        # 配置隔离和分组
+        namespace: job-firm
+        group: DEFAULT_GROUP
+
+  # JSON 序列化配置
+  jackson:
+    # 统一 JSON 时间格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 时区设置为中国标准时间
+    time-zone: Asia/Shanghai
+
+# OpenFeign 微服务调用配置
+feign:
+  client:
+    config:
+      default:
+        # Feign 调用超时时间
+        connectTimeout: 5000
+        readTimeout: 10000
+  httpclient:
+    # 启用 HttpClient 作为底层实现
+    enabled: true
+
+# Actuator 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露所有 Actuator 监控端点，方便健康检查和监控
+        include: "*"
+
+# 日志级别配置
+logging:
+  # 日志级别，业务包设为 debug，Spring 框架设为 info
+  # TRACE → 最详细，几乎所有细节。
+  # DEBUG → 调试信息，开发时常用。
+  # INFO → 关键运行信息，生产环境常用。
+  # WARN → 警告，提示潜在问题。
+  # ERROR → 错误，程序运行失败。
+  # FATAL（部分框架有）→ 致命错误，系统崩溃。
+  level:
+    com.jobfirm.api: debug
+    org.springframework: info
