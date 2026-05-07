@@ -33,6 +33,11 @@
         <module>job-firm-admin-service</module>
         <module>job-firm-recommend-search-service</module>
         <module>job-firm-archive-service</module>
+
+        <!-- 合并模块 -->
+        <module>job-firm-core</module>
+        <module>job-firm-firm-job</module>
+        <module>job-firm-management</module>
     </modules>
 
     <!-- Job Firm Platform 系统属性配置 -->
@@ -103,6 +108,53 @@
             <dependency>
                 <groupId>com.jobfirm</groupId>
                 <artifactId>job-firm-api</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+
+            <!-- ===================== 业务模块 ===================== -->
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-auth</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-user-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-firm-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-job-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-order-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-payment-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-admin-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-recommend-search-service</artifactId>
+                <version>${com.jobfirm.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.jobfirm</groupId>
+                <artifactId>job-firm-archive-service</artifactId>
                 <version>${com.jobfirm.version}</version>
             </dependency>
 

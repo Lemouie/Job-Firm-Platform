@@ -5,7 +5,6 @@ import com.jobfirm.common.result.ErrorCode;
 import com.jobfirm.job.enums.OrderStatusEnum;
 import com.jobfirm.job.module.entity.Order;
 import com.jobfirm.job.mapper.OrderMapper;
-import com.jobfirm.job.mq.OrderMQProducer;
 import com.jobfirm.job.service.OrderProgressService;
 import com.jobfirm.job.service.OrderService;
 
@@ -26,7 +25,6 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
     private final OrderProgressService orderProgressService;
-    private final OrderMQProducer orderMQProducer;
 
     // ======================== 状态查询 ========================
 
@@ -86,10 +84,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = getById(orderId);
         validateStatus(order, OrderStatusEnum.PENDING);
 
-        // 通过 RocketMQ 发送支付请求到 PaymentService 异步处理
-        orderMQProducer.sendPaymentRequest(order, payMethod);
-        // 注意：订单状态保持 PENDING，等待支付结果回调后由 PaymentResultConsumer 更新
-        return "订单 " + orderId + " 已发起支付请求，支付方式：" + payMethod + "，等待支付结果...";
+        // 直接调用支付服务（TODO: 集成PaymentClient/Fegin调用）
+        return "订单 " + orderId + " 已发起支付请求，支付方式：" + payMethod + "，请等待支付结果...";
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.jobfirm.paymentservice.mapper;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jobfirm.paymentservice.model.entity.OrderPayment;
 import org.apache.ibatis.annotations.Mapper;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
  * 事务所收入 = 差事支付释放金额（released_amount）
  */
 @Mapper
+@DS("job_firm_payment")
 public interface OrderPaymentMapper extends BaseMapper<OrderPayment> {
 
     /**

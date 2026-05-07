@@ -70,11 +70,7 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
         </dependency>
 
-        <!-- Spring Could Alibaba Nacos Discovery -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
-        </dependency>
+        <!-- Nacos Discovery Removed for standalone mode -->
 
         <!-- Spring Cloud LoadBalanbcer-->
         <dependency>
@@ -90,17 +86,9 @@
 
         <!-- ====================================================================== -->
 
-        <!-- Spring Cloud Alibaba Sentinel -->
-        <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
-        </dependency>
+        <!-- Sentinel Removed for standalone mode -->
 
-        <!-- Sentinel Gateway Adapter -->
-        <dependency>
-            <groupId>com.alibaba.csp</groupId>
-            <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
-        </dependency>
+        <!-- Sentinel Gateway Adapter Removed for standalone mode -->
 
         <!-- Lombok -->
         <dependency>
@@ -117,6 +105,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.jobfirm.gateway.GatewayApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals><goal>repackage</goal></goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

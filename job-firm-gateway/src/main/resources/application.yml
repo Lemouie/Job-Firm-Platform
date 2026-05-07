@@ -29,28 +29,7 @@ spring:
     name: gateway
 
   cloud:
-    sentinel:
-      transport:
-        # Sentinel Dashboard 控制台地址
-        dashboard: localhost:8718
-        # 客户端与 Dashboard 通信的端口 (默认 8719)
-        port: 8719
-      # 饥饿加载：应用启动时立即连接到 Dashboard
-      eager: true
-
-    nacos:
-      # 服务发现（Service Discovery）的配置
-      discovery:
-        # 指定 Nacos 注册中心的地址
-        server-addr: localhost:8848
-      config:
-        # Nacos 配置中心地址
-        server-addr: localhost:8848
-        # 配置隔离和分组
-        namespace: job-firm
-        group: DEFAULT_GROUP
-
-    # 整个系统的 API 网关配置，统一管理和转发请求
+# 整个系统的 API 网关配置，统一管理和转发请求
     gateway:
 #      discovery:
 #        locator:
@@ -66,7 +45,7 @@ spring:
       routes:
         # auth Service（认证服务）
         - id: auth
-          uri: lb://auth-service
+          uri: http://localhost:8081
           predicates:
             - Path=/api/auth/**
           filters:
@@ -74,25 +53,65 @@ spring:
 
         # User Service（用户服务）
         - id: user-service
-          uri: lb://user-service
+          uri: http://localhost:8081
           predicates:
             - Path=/api/users/**
           filters:
             - StripPrefix=1
+
         # Firm Service（事务所服务）
         - id: firm-service
-          uri: lb://firm-service
+          uri: http://localhost:8083
           predicates:
             - Path=/api/firms/**
           filters:
             - StripPrefix=1
 
+        # Job Service（职位服务）
+        - id: job-service
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/jobs/**
+          filters:
+            - StripPrefix=1
+
+        # Order Service（订单服务）
+        - id: order-service
+          uri: http://localhost:8085
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=1
 
         # Payment Service（支付服务）
         - id: payment-service
-          uri: lb://payment-service
+          uri: http://localhost:8086
           predicates:
             - Path=/api/payment/**
+          filters:
+            - StripPrefix=1
+
+        # Admin Service（管理后台）
+        - id: admin-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=1
+
+        # Recommend Service（推荐服务）
+        - id: recommend-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/recommend/**
+          filters:
+            - StripPrefix=1
+
+        # Archive Service（归档服务）
+        - id: archive-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/archive/**
           filters:
             - StripPrefix=1
 

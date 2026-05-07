@@ -1,5 +1,6 @@
 package com.jobfirm.paymentservice.mapper;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jobfirm.paymentservice.model.entity.VipPayment;
 import org.apache.ibatis.annotations.Mapper;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
  * 平台收入 = VIP 支付成功金额
  */
 @Mapper
+@DS("job_firm_payment")
 public interface VipPaymentMapper extends BaseMapper<VipPayment> {
 
     /**

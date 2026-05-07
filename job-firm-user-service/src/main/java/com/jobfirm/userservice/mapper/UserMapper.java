@@ -1,5 +1,6 @@
 package com.jobfirm.userservice.mapper;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.jobfirm.userservice.model.entity.User;
 import org.apache.ibatis.annotations.Mapper;
@@ -10,5 +11,6 @@ import org.apache.ibatis.annotations.Mapper;
  * 对应数据库表：user
  */
 @Mapper
+@DS("job_firm_core")
 public interface UserMapper extends BaseMapper<User> {
 }

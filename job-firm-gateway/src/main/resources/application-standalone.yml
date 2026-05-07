@@ -1,29 +1,49 @@
 # jobfirm平台 内部调用密钥
 jobfirm:
+  # 字符串在有':'或空格时需要用双引号，@ConfigurationProperties会自动去除双引号传递其中的值
   internal-secret: "jobfirm-2026"
 
+# 服务基本信息
 server:
+  #服务运行的端口
   port: 8080
+  #  servlet:
+  #    # 服务的统一访问前缀
+  #    context-path: /firm
   error:
+    # 控制是否在错误响应中包含异常的消息
+    # never → 不包含
+    # always → 总是包含
+    # on_param → 当请求参数里有 ?message=true 时才包含
     include-message: always
+    # 控制是否在错误响应中包含异常的堆栈信息
+    # never → 不包含
+    # always → 总是包含
+    # on_param → 当请求参数里有 ?trace=true 时才包含
     include-stacktrace: always
 
 spring:
+  # 服务基本信息
   application:
+    # 微服务名称，用于注册中心识别
     name: gateway
 
   cloud:
-    nacos:
-      discovery:
-        enabled: false
-      config:
-        enabled: false
-
+# 整个系统的 API 网关配置，统一管理和转发请求
     gateway:
+#      discovery:
+#        locator:
+#          # 开启自动路由，网关会根据 Nacos 注册的服务名自动生成路由
+#          enabled: true
+#          # 服务名统一转成小写，避免大小写冲突
+#          lower-case-service-id: true
+      # 统一过滤器，为所有请求统一添加或修改请求头
       default-filters:
+        # 直接添加进header，不会去除双引号，所以不能使用双引号
         - AddRequestHeader=X-Internal-Secret, jobfirm-2026
+      # 为路由定义自己的过滤规则
       routes:
-        # auth Service
+        # auth Service（认证服务）
         - id: auth
           uri: http://localhost:8081
           predicates:
@@ -31,15 +51,15 @@ spring:
           filters:
             - StripPrefix=1
 
-        # User Service
+        # User Service（用户服务）
         - id: user-service
-          uri: http://localhost:8082
+          uri: http://localhost:8081
           predicates:
             - Path=/api/users/**
           filters:
             - StripPrefix=1
 
-        # Firm Service
+        # Firm Service（事务所服务）
         - id: firm-service
           uri: http://localhost:8083
           predicates:
@@ -47,23 +67,23 @@ spring:
           filters:
             - StripPrefix=1
 
-        # Job Service
+        # Job Service（职位服务）
         - id: job-service
-          uri: http://localhost:8084
+          uri: http://localhost:8083
           predicates:
             - Path=/api/jobs/**
           filters:
             - StripPrefix=1
 
-        # Order Service
+        # Order Service（订单服务）
         - id: order-service
           uri: http://localhost:8085
           predicates:
-            - Path=/api/orders/**, /api/order-progress/**
+            - Path=/api/orders/**
           filters:
             - StripPrefix=1
 
-        # Payment Service
+        # Payment Service（支付服务）
         - id: payment-service
           uri: http://localhost:8086
           predicates:
@@ -71,18 +91,62 @@ spring:
           filters:
             - StripPrefix=1
 
-    sentinel:
-      transport:
-        dashboard: localhost:8718
-      eager: true
-      filter:
-        enabled: false
+        # Admin Service（管理后台）
+        - id: admin-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/admin/**
+          filters:
+            - StripPrefix=1
 
+        # Recommend Service（推荐服务）
+        - id: recommend-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/recommend/**
+          filters:
+            - StripPrefix=1
+
+        # Archive Service（归档服务）
+        - id: archive-service
+          uri: http://localhost:8088
+          predicates:
+            - Path=/api/archive/**
+          filters:
+            - StripPrefix=1
+
+  # JSON 序列化配置
   jackson:
+    # 统一 JSON 时间格式
     date-format: yyyy-MM-dd HH:mm:ss
+    # 时区设置为中国标准时间
     time-zone: Asia/Shanghai
 
+  # Redis 缓存配置
+  data:
+    redis:
+      # Redis 服务地址和端口
+      host: localhost
+      port: 6379
+      # 选择 Redis 的第几个数据库（默认 0）
+      database: 0
+
+# Actuator 监控端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        # 暴露所有 Actuator 监控端点，方便健康检查和监控
+        include: "*"
+
+# 日志级别配置
 logging:
+  # 日志级别，Spring Cloud Gateway 设为 DEBUG
+  # TRACE → 最详细，几乎所有细节。
+  # DEBUG → 调试信息，开发时常用。
+  # INFO → 关键运行信息，生产环境常用。
+  # WARN → 警告，提示潜在问题。
+  # ERROR → 错误，程序运行失败。
+  # FATAL（部分框架有）→ 致命错误，系统崩溃。
   level:
-    org.springframework.cloud.gateway: INFO
-    com.jobfirm: DEBUG
+    org.springframework.cloud.gateway: DEBUG

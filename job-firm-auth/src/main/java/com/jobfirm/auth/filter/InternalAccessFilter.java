@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.io.IOException;
 
-@Component
+@Component("authInternalAccessFilter")
 @RequiredArgsConstructor
 public class InternalAccessFilter implements Filter {
     private final JobFirmProperties jobFirmProperties;
