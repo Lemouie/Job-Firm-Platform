@@ -66,6 +66,9 @@
         <mockito.version>5.11.0</mockito.version>
         <testcontainers.version>1.19.7</testcontainers.version>
 
+        <!-- Sentinel -->
+        <sentinel.version>1.8.6</sentinel.version>
+
         <!-- 编码格式 -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -159,6 +162,20 @@
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-starter-alibaba-sentinel</artifactId>
                 <version>${spring.cloud.alibaba.version}</version>
+            </dependency>
+
+            <!-- Sentinel Annotation AspectJ -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-annotation-aspectj</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+
+            <!-- Sentinel Spring Cloud Gateway Adapter -->
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+                <version>${sentinel.version}</version>
             </dependency>
 
             <!-- Spring Security Crypto (BCrypt) -->

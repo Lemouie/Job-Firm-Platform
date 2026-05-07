@@ -29,6 +29,15 @@ spring:
     name: gateway
 
   cloud:
+    sentinel:
+      transport:
+        # Sentinel Dashboard 控制台地址
+        dashboard: localhost:8718
+        # 客户端与 Dashboard 通信的端口 (默认 8719)
+        port: 8719
+      # 饥饿加载：应用启动时立即连接到 Dashboard
+      eager: true
+
     nacos:
       # 服务发现（Service Discovery）的配置
       discovery:
